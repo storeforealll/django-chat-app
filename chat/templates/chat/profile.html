@@ -1,0 +1,89 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <div class="card profile-card">
+    <h2 class="profile-title">👤 {{ user.username }}'s Profile</h2>
+
+    <!-- Profile Information -->
+    <div class="profile-info">
+      <div class="avatar">
+        {% if avatar_url %}
+          <img src="{{ avatar_url }}" alt="Avatar" class="avatar-img">
+        {% else %}
+          <img src="{% static 'chat/default-avatar.png' %}" alt="Default Avatar" class="avatar-img">
+        {% endif %}
+      </div>
+      <div class="profile-details">
+        <p><strong>Email:</strong> {{ user.email|default:"Not provided" }}</p>
+        <p><strong>Bio:</strong> {{ profile.bio|default:"No bio available." }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 CSS Styling -->
+<style>
+  body{
+    background: black;
+  }
+  /* Profile Container */
+  .profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+  }
+
+  /* Profile Card */
+  .profile-card {
+    background: yellow;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(15, 12, 12, 0.1);
+    max-width: 500px;
+    text-align: center;
+  }
+
+  /* Title */
+  .profile-title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
+  }
+
+  /* Profile Info */
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    color: #333;
+  }
+
+  /* Avatar */
+  .avatar-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgb(0, 162, 255);
+    transition: 0.3s;
+  }
+
+  .avatar-img:hover {
+    border-color: #0056b3;
+    transform: scale(1.05);
+  }
+
+  /* Profile Details */
+  .profile-details {
+    text-align: center;
+  }
+</style>
+
+{% endblock %}

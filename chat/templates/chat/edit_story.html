@@ -1,0 +1,16 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Edit Story{% endblock %}
+
+{% block content %}
+<div class="container card">
+  <h2>✏️ Edit Story: {{ story.title }}</h2>
+  
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn primary-btn">Save Changes</button>
+    <a href="{% url 'home' %}" class="btn">Cancel</a>
+  </form>
+</div>
+{% endblock %}

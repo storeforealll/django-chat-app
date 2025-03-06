@@ -1,0 +1,33 @@
+
+
+{% extends 'chat/base.html' %}
+{% load static %}
+{% block title %}Chat Room{% endblock %}
+
+{% block content %}
+<h2>Welcome to the Chat Room: {{ room_name }}</h2>
+<div id="messages">
+    {% for message in messages %}
+        <p><strong>{{ message.user.username }}:</strong> {{ message.content }} <span>{{ message.timestamp }}</span></p>
+    {% empty %}
+        <p>No messages yet.</p>
+    {% endfor %}
+</div>
+<input type="text" id="message" placeholder="Type your message...">
+<button id="send">Send</button>
+
+<script>
+    const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/{{ room_name }}/');
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        document.getElementById('messages').innerHTML += `<p><strong>${data.username}:</strong> ${data.message} <span>${data.timestamp}</span></p>`;
+    };
+    document.getElementById('send').onclick = function() {
+        const messageInput = document.getElementById('message');
+        if(messageInput.value.trim() !== ""){
+            chatSocket.send(JSON.stringify({'username': '{{ request.user.username }}', 'message': messageInput.value}));
+            messageInput.value = '';
+        }
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,259 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+<div class="home-container">
+  <h2 class="welcome-text">👋 Welcome, {{ user.username }}!</h2>
+
+  <!-- 🔹 My Stories Section -->
+  <section id="my-stories" class="card">
+    <h3>📸 My Stories</h3>
+    <div class="stories-container">
+      {% if my_stories %}
+        {% for story in my_stories %}
+          <div class="story-item" onclick="openStory('{{ story.id }}')">
+            {% if story.media %}
+              <img src="{{ story.media.url }}" alt="Story Thumbnail">
+            {% else %}
+              <div class="story-placeholder">📖</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty-list">You haven't uploaded any stories yet.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- 🔹 Friends' Stories Section -->
+  <section id="friends-stories" class="card">
+    <h3>👥 Friends' Stories</h3>
+    <div class="stories-container">
+      {% if friends_stories %}
+        {% for story in friends_stories %}
+          <div class="story-item" onclick="openStory('{{ story.id }}')">
+            {% if story.media %}
+              <img src="{{ story.media.url }}" alt="Story Thumbnail">
+            {% else %}
+              <div class="story-placeholder">📖</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty-list">Your friends haven't uploaded any stories yet.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- 🔹 Upload Story Section -->
+  <section id="story-upload" class="card">
+    <h3>📖 Upload a Story</h3>
+    <form method="post" enctype="multipart/form-data" action="{% url 'upload_story' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="story-title">Title:</label>
+        <input type="text" name="title" id="story-title" class="input-field" required>
+      </div>
+      <div class="form-group">
+        <label for="story-content">Content:</label>
+        <textarea name="content" id="story-content" rows="5" class="input-field" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="story-media">📷 Media (optional):</label>
+        <input type="file" name="media" id="story-media" class="input-field">
+      </div>
+      <button type="submit" class="btn primary-btn">Upload Story</button>
+    </form>
+  </section>
+
+  <hr>
+
+  <!-- 🔹 Room Chats -->
+  <section id="chat-rooms" class="card">
+    <h3>💬 Room Chats</h3>
+    <ul class="chat-list">
+      {% for room in room_chats %}
+        <li>
+          <a href="{% url 'room' room.name %}" class="chat-link">🏠 {{ room.name }}</a>
+        </li>
+      {% empty %}
+        <li class="empty-list">No room chats available.</li>
+      {% endfor %}
+    </ul>
+    <h4>Create a New Chat Room</h4>
+    <form method="post" action="{% url 'create_room' %}">
+      {% csrf_token %}
+      <input type="text" name="room_name" class="input-field" placeholder="Enter room name" required>
+      <button type="submit" class="btn secondary-btn">Create Room</button>
+    </form>
+  </section>
+
+  <hr>
+
+  <!-- 🔹 Private Chats -->
+  <section id="private-chats" class="card">
+    <h3>🔒 Private Chats</h3>
+    {% if private_chats %}
+      <ul class="chat-list">
+        {% for chat in private_chats %}
+          <li class="private-chat-item">
+            <div class="private-chat-details">
+              <a href="{% url 'private_chat' chat.id %}" class="chat-link">
+                ✉️ 
+                {% for participant in chat.participants.all %}
+                  {% if participant != user %}
+                    {{ participant.username }}
+                  {% endif %}
+                {% endfor %}
+              </a>
+            </div>
+            <div class="private-chat-actions">
+              <form method="post" action="{% url 'delete_private_chat' chat.id %}" class="delete-form" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn small-btn danger-btn">Delete Chat</button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-list">No private chats available.</p>
+    {% endif %}
+  </section>
+</div>
+
+<!-- 🔹 Story Modal (Hidden by Default) -->
+<div id="story-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeStory()">&times;</span>
+    <img id="story-image" src="" alt="Story">
+    <p id="story-text"></p>
+  </div>
+</div>
+
+<!-- 🔹 CSS Styling -->
+<style>
+.card{
+  background: rgba(0, 0, 0, 0.8);
+
+  }
+  /* Profile Container */
+  .home-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+  }
+
+  /* WhatsApp-Style Stories */
+  .stories-container {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+
+  .story-item {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #25D366;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .story-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .story-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 40px;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    position: relative;
+    width: 80%;
+    max-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .modal-content img {
+    width: 60%;
+    height: 100%;
+    border-radius: 10px;
+  }
+
+  .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    color:black;
+    cursor: pointer;
+  }
+
+</style>
+
+<!-- 🔹 JavaScript for Story Modal -->
+<script>
+  function openStory(storyId) {
+    var stories = {
+      {% for story in my_stories %}
+        "{{ story.id }}": {
+          "image": "{% if story.media %}{{ story.media.url }}{% endif %}",
+          "text": "{{ story.content|escapejs }}"
+        },
+      {% endfor %}
+      {% for story in friends_stories %}
+        "{{ story.id }}": {
+          "image": "{% if story.media %}{{ story.media.url }}{% endif %}",
+          "text": "{{ story.content|escapejs }}"
+        },
+      {% endfor %}
+    };
+
+    var story = stories[storyId];
+    if (story) {
+      document.getElementById("story-image").src = story.image || "";
+      document.getElementById("story-text").textContent = story.text;
+      document.getElementById("story-modal").style.display = "flex";
+    }
+  }
+
+  function closeStory() {
+    document.getElementById("story-modal").style.display = "none";
+  }
+</script>
+
+{% endblock %}

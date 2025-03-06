@@ -1,0 +1,24 @@
+{% extends 'chat/base.html' %}
+{% block title %}User Directory{% endblock %}
+
+{% block content %}
+  <h2>Find someone to chat with</h2>
+  <ul>
+    {% for user in users %}
+      <li>
+        {{ user.username }}
+        <a href="{% url 'start_private_chat' user.username %}">Start Chat</a>
+      </li>
+    {% empty %}
+      <li>No users found.</li>
+    {% endfor %}
+  </ul>
+
+  <style>
+   body{
+    background: black;
+   }
+
+  </style>
+
+{% endblock %}
